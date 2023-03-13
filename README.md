@@ -1,99 +1,127 @@
-Configuration
 
-In this section:
+Smart-Irrigation-Robot
+This project is all about the automatic irrigation system, This robot will start moving and then stop whenever it will find any plant then it starts watering according to their need.
 
-One-time set up
+Context
+Introduction
+Circuit diagram
+Setup yours
+code
+tools
+material
+Guidelines
+Manual
+INTRODUCTION
+Goal of plant watering robot was to follow a line to a potted plant, actuate a sensor into the dirt to check the moisture level of the dirt, water the plant if needed, and continue on to the next plant when the moisture threshold is reached.This robot will start moving and then stop whenever it will find any plant then it starts watering according to their need. Once the robot reaches the plants, a bump sensor would be triggered to cause actuation of a servo motor with a moisture sensor on it
 
-List of events, services entities and attributes created
+Circuit Diagram
+The circuit diagram of the automatic plant watering system is shown in Fig. The circuit comprises an Arduino UNO board, a soil moisture sensor, a servo motor, DC water pump, and an L293D (IC1) motor driver IC,ultrasonic sensor,moiture sensor, li on battery,TP4056 charging module, 100RPM geared motor,wheels.
 
-Example automation
+image
 
-Optional settings
+Set up yours
+To reproduce this project, you'll need some tools, some material, and the code from this project
 
-Step 1: configuration of component
+Software Setup
+The program is written in Arduino programming language. The code is well-commented and easy to understand. Compile the irrigation robot.ino code and upload it to the microcontroller, using Arduino IDE version 1.
 
-Install the custom component (preferably using HACS) and then use the Configuration --> Integrations pane to search for 'Smart Irrigation'. You will need to specify the following:
+Once the arduino is loaded with the program it's time to wire it all up. Follow the diagram and wire everything up accordingly. Do not plug the arduino in to power at this point. Make sure everything is situated before letting it loose on your plants. You will need to attach a hose to the pump which will deliver water to your plants. I used a fish air hose to do this.
 
-Names of sensors that supply required measurements (optional). Only required in mode 2) and 3). See Measurements and Units for more information on the measurements and units expected by this component.
+The sensor will calibrate by itself once it is kept in the soil and the threshold value will be shown on the serial monitor in Arduino. Serial debugging is available in this program.
 
-API Key for Open Weather Map (optional). Only required in mode 1) and 3). See Getting Open Weater Map API Key below for instructions.
+The program in the Arduino reads the moisture value from the sensor every 20 seconds. If the value reaches the threshold value, the program does the following three things:
 
-Reference Evapotranspiration for all months of the year. See Getting Monthly ET values below for instructions. Note that you can specify these in inches or mm, depending on your Home Assistant settings.
+It moves the servo motor , along with the water pipe fixed on it, toward the potted plant, whose moisture level is less than the predetermined/ threshold level.
+It starts the motor pump to supply water to the plant for a fixed period of time and then stops the water pump.
+It brings back the servo motor to its initial position.
+Code
+Upload the attached sketch to your arduino. Once the arduino is loaded with the program it's time to wire it all up. Follow the diagram and wire everything up accordingly. Do not plug the arduino in to power at this point.
 
-Number of sprinklers in your irrigation system
+First, you have to make to install these libraries in arduino IDE
 
-Flow per spinkler in gallons per minute or liters per minute. Refer to your sprinkler's manual for this information.
+  #include <AFMotor.h>
+ #include<Servo.h> 
+We haave to define the triggered pin and echo pic for ultrasonic sensor 1 and ultrasonic sensor 2 triggered pin> is used to trigger the ultrasonic sound pulses. Echo pin produces a pulse when the reflected signal is received. echo pin>Echo pin is an Output pin. This pin goes high for a period of time which will be equal to the time taken for the US wave to return back to the sensor
 
-Area that the sprinklers cover in square feet or m2
+const int trigPin = A0;                       //Defines the trig pin of ultrasonic sensor 1st 
+const int echoPin = A1;                       //Defines the echo pin of ultrasonic sensor 1st
+const int trigPin1=A2;                        //Defines the trig pin of ultrasonic sensor 2nd 
+const int echoPin1=A3;                        //Defines the echo pin of ultrasonic sensor 2nd 
+Defines the pin of moisture sensor pin and store value given by moisture sensor
 
-Multi-zone support: For irrigation systems that have multiple zones which you want to run in series (one after the other), you need to add an instance of this integration for each zone. Of course, the configuration should be done for each zone, including the area the zone covers and the sprinkler settings.
+int mpin = A4;                                
+int mout;                                     
+Defines the frequency which will be given to motor 1 and motor 2
 
-When entering any values in the configuration of this component, keep in mind that the component will expect inches, sq ft, gallons, gallons per minute, or mm, m2, liters, liters per minute respectively depending on the settings in Home Assistant (imperial vs metric system). For sensor configuration take care to make sure the unit the component expects is the same as your sensor provides.
+AF_DCMotor motor1(1, MOTOR12_1KHZ);           
+AF_DCMotor motor2(2, MOTOR12_1KHZ);           
+AF_DCMotor motor4(4, MOTOR12_1KHZ);
+Starts serial communication with the arduino and PC and /Define the attached pin for servo motor 1
 
-If you want to go back and change your settings afterwards, you can either delete the instance and re-create it or edit the entity registry under config/.storage at your own risk.
+void setup() {
+  Serial.begin(9600);                         
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT);
+  pinMode(trigPin1, OUTPUT); 
+  pinMode(echoPin1, INPUT);
+  m1.attach(10);                             
+  m2.attach(9);                              
+To set the particular speed of motor 1 and motor 2
 
-Step 2: checking services, events and entities
+ motor1.setSpeed(255);                      
+  motor2.setSpeed(255);                      
+Formula that set the distance of robot goes from one plant to next one
 
-After successful configuration, you should end up with three entities and their attributes, listed below as well as three services.
+distance= duration*0.034/2;
+Make sure everything is situated before letting it loose on your plants. You will need to attach a hose to the pump which will deliver water to your plants. If you haven't plugged in the pump go ahead and do so. Finally connect the arduino to your chosen power source. I'm using a simple 5V charger and a USB cable.
 
-Services
+Tools
+The tools are very simple, I used for this project:
 
-For each instance of the component the following services will be available:
+Battery holders
+mounting
+A flat screwdriver
+Plastic rod
+If you have them you can also add some wire strippers, but they are not indispensable.
 
-ServiceDescriptionsmart_irrigation.[instance]_calculate_daily_adjusted_run_timeTriggers the calculation of daily adjusted run time. Use only if you disabled automatic refresh in the options.smart_irrigation.[instance]_calculate_hourly_adjusted_run_timeTriggers the calculation of hourly adjusted run time. Use for debugging only.smart_irrigation.[instance]_enable_force_modeEnables force mode.smart_irrigation.[instance]_disable_force_modeDisables force mode.smart_irrigation.]instance]_reset_bucketResets the bucket to 0. Needs to be called after done irrigating (see below).smart_irrigation.[instance]_set_bucketSets the bucket to the provided value. Use for debugging only.
+Material
+Here is a list of the products used to build the system.
 
-Events
+To control the system:
 
-The component uses a number of events internally that you do not need to pay attention to unless you need to debug things. The exception is the _start event.
+Arduino UNO (2100 pkr)
+Servo SG90(640)
+L293D Sheild(500pkr)
+100 RPM Geared motor and wheels(880pkr)
+Prototyping jumper wires(140pkr)
+Wooden box
+Plastic container
+For the autonomy in energy:
 
-EventDescription[instance]_startFires depending on daily_adjusted_run_time value and sunrise. You can listen to this event to optimize the moment you irrigate so your irrigation starts just before sunrise and is completed at sunrise. See below for examples on how to use this.[instance]_bucketUpdFired when the bucket is calculated. Happens at automatic refresh time or as a result of the reset_bucket, set_bucket or calculate_daily_adjusted_run_time service.[instance]_forceModeTogFired when the force mode is disabled or enabled. Result of calling enable_force_mode or disable_force_mode[instance]_hourlyUpdFired when the hourly adjusted run time is calculated. Happens approximately every hour and when calculate_hourly_adjusted_run_time service is called.
+LI_ON Battery(280pkr)
+Charging module(TP4056)(120pkr)
+For the water tank:
 
-Entities
+12V DC pump(350pkr)
+The sensors:
 
-sensor.smart_irrigation_base_schedule_index
+Ultrasonic sensor(380pkr)
+Moisture sensor(180pkr)
+For a total of 10k. That's not cheap! But keep in mind that it's still cheaper than a pre-built system, and with a lot more capabilities! Also, some parts are only for prototyping, and we purchased many components in groups of several pieces for other projects, you don't need 3 NodeMCU boards, nor 6 relays for this project
 
-The number of seconds the irrigation system needs to run assuming maximum evapotranspiration and no rain / snow. This value and the attributes are static for your configuration. Attributes:
+Power Block The L293D Sheild can drive 4 DC motors and 2 stepper or Servo motors at the same time. Each channel of this module has the maximum current of 1.2A and doesn't work if the voltage is more than 25v or less than 4.5v.the supply voltage and reduces it to a constant 5V making it suitable to run the Arduino & Soil Moisture Sensor.
 
-AttributeDescriptionnumber of sprinklersnumber of sprinklers in the systemflowamount of water that flows through a single sprinkler in liters or gallon per minutethroughputtotal amount of water that flows through the irrigation system in liters or gallon per minute.reference evapotranspirationthe reference evapotranspiration values provided by the user - one for each month.areathe total area the irrigation system reaches in m2 or sq ft.precipitation ratethe output of the irrigation system across the whole area in mm or inch per hourbase schedule index minutesthe value of the entity in minutes instead of secondsauto refreshindicates if automatic refresh is enabled.auto refresh timetime that automatic refresh will happen, if enabled.force mode durationduration of irrigation in force mode (seconds)
-sensor.smart_irrigation_hourly_adjusted_run_time
+Moisture Sensor The sensor feeds an analog value to the Arduino. The threshold level of moisture is calibrated by the user depending on the type of plant used.
 
-The adjusted run time in seconds to compensate for any net moisture losses that are not compensated by rain. Updated approx. every 60 minutes. In contrast to the daily adjusted run time, no lead time is added and no capping to any maximum is applied. Attributes:
+GUIDELINES:
+Before powering the circuit on, you need to keep in mind the following macro definitions in the code:
 
-AttributeDescriptionrainthe predicted (when using Open Weather Map) or cumulative daily (when using a sensor) rainfall in mm or inchsnowthe predicted (when using Open Weather Map, will be 0 when using a sensor) snowfall in mm or inchprecipitationthe total precipitation (which is the sum of rain and snow in mm or inch)evapotranspirationthe expected evapotranspirationnetto precipitationthe net evapotranspiration in mm or inch, negative values mean more moisture is lost than gets added by rain/snow, while positive values mean more moisture is added by rain/snow than what evaporates, equal to precipitation - evapotranspirationwater budgetpercentage of expected evapotranspiration vs peak evapotranspirationadjusted run time minutesadjusted run time in minutes instead of seconds.
+Changing the angle of rotation of the servo horn toward the first plant and second plant. The default values are 70 degrees and 145 degrees.
+Changing the watering time according to the size of the plant. The default values are five seconds and eight seconds.
+Changing the threshold value according to your need. The default value is 600.
+The water pipe is connected to the servo motor which rotates according to the requirement.
 
-sensor.smart_irrigation_daily_adjusted_run_time
+If there are two crops A & B. and if A has less amount of moisture then the servo motor rotates toward crop A.
+Starts the watering and when it will fill up it will rotate towards PLANT B. this is one more benefit of this project.
+Place the flower plants where the pipe from the servo motor can easily reach them. When the moisture level dips below 600, the servo rotates at an angle of 70 degrees. That is after the servo motor horn moves 70 degrees toward the first pot, the motor pump will be on for five seconds and then stop automatically. Then, the servo returns to its original position. Similarly, if you are using a second sensor, the servo motor horn will move to 145 degrees to the second biggest pot, and the motor pump will be on for eight seconds and then stop automatically. The servo returns to its original position.
 
-The adjusted run time in seconds to compensate for any net moisture lost. Updated every day at 11:00 PM / 23:00 hours local time. Use this value for your automation (see step 3, below). Attributes:
-
-AttributeDescriptionwater budgetpercentage of net precipitation / base schedule indexbucketrunning total of net precipitation. Negative values mean that irrigation is required. Positive values mean that more moisture was added than has evaporated yet, so irrigation is not required. Should be reset to 0 after each irrigation, using the smart_irrigation.reset_bucket servicelead_timetime in seconds to add to any irrigation. Very useful if your system needs to handle another task first, such as building up pressure.maximum_durationmaximum duration in seconds for any irrigation, including any lead_time.adjusted run time minutesadjusted run time in minutes instead of seconds.
-
-creating automation
-
-Since this component does not interface with your irrigation system directly, you will need to use the data it outputs to create an automation that will start and stop your irrigation system for you. This way you can use this custom component with any irrigation system you might have, regardless of how that interfaces with Home Assistant. In order for this to work correctly, you should base your automation on the value of sensor.smart_irrigation_daily_adjusted_run_time as long as you run your automation after it was updated (11:00 PM / 23:00 hours local time). If that value is above 0 it is time to irrigate. Note that the value is the run time in seconds. Also, after irrigation, you need to call the smart_irrigation.reset_bucket service to reset the net irrigation tracking to 0.
-
-Example automation 1: one valve, potentially daily irrigation
-
-Here is an example automation that runs when the smart_irrigation_start event is fired. It checks if sensor.smart_irrigation_daily_adjusted_run_time is above 0 and if it is it turns on switch.irrigation_tap1, waits the number of seconds as indicated by sensor.smart_irrigation_daily_adjusted_run_time and then turns off switch.irrigation_tap1. Finally, it resets the bucket by calling the smart_irrigation.reset_bucket service. If you have multiple instances you will need to adjust the event, entities and service names accordingly.
-alias: Smart Irrigation description: 'Start Smart Irrigation at 06:00 and run it only if the adjusted_run_time is >0 and run it for precisely that many seconds' trigger: - 
-event_data: {} 
-event_type: alias: 
-Smart Irrigation description: 'Start Smart Irrigation at 06:00 and run it only if the adjusted_run_time is >0 and run it for precisely that many seconds' 
-trigger: - event_data: {} 
-event_type: smart_irrigation_start platform: 
-event condition: - above: '0' 
-condition: numeric_state entity_id: 
-sensor.smart_irrigation_daily_adjusted_run_time action: - 
-data: {} 
-entity_id: switch.irrigation_tap1 service: switch.turn_on - 
-delay: seconds: 
-'{{states("sensor.smart_irrigation_daily_adjusted_run_time")}}' - 
-data: {} 
-entity_id: switch.irrigation_tap1 service: 
-switch.turn_off - 
-data: {} 
-service: smart_irrigation.reset_bucket
-configuring optional settings
-After setting up the component, you can use the options flow to configure the following:
-
-OptionDescriptionDefaultLead timeTime in seconds to add to any irrigation. Very useful if your system needs to handle another task first, such as building up pressure.0Change percentagePercentage to change adjusted run time by. For example, you want to run 80% of the calculated adjusted run time, enter 80 here. Or, if you want to run 150% of the calculated adjusted run time, enter 150.100Maximum durationMaximum duration in seconds for any irrigation, including any lead_time. -1 means no maximum.-1Show unitsIf enabled, attributes values will show units. By default units will be hidden for attribute values.FalseAutomatic refreshBy default, automatic refresh is enabled. Disabling it will require the user to call smart_irrigation.calculate_daily_adjusted_run_time manually.TrueAutomatic refresh timeSpecifies when to do the automatic refresh if enabled.23:00 
-Initial update delayDelay before first sensor update after reboot. This is useful if using sensors that do not have a status right after reboot.30CoastalIf the location you are tracking is situated on or adjacent to coast of a large land mass or anywhere else where air masses are influenced by a nearby water body, enable this setting.FalseSolar Radiation calculationFrom v0.0.50 onwards, the component estimates solar radiation using temperature, which seems to be more accurate. If for whatever reason you wanted to revert back to the pre v0.0.50 behavior (which used a estimation of sun hours) disable this.True
